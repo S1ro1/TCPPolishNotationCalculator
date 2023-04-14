@@ -3,4 +3,4 @@ project(ipk_parser)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(ipk_parser main.cpp Token.cpp Token.h utils.h utils.cpp Parser.cpp Parser.h)
+add_executable(ipk_parser main.cpp Token.cpp Token.h utils.h utils.cpp Parser.cpp Parser.h UDPConnection.cpp UDPConnection.h)

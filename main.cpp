@@ -1,17 +1,16 @@
 #include <deque>
-#include <functional>
-#include <iostream>
 #include <string>
 
-#include "Parser.h"
+#include "UDPConnection.h"
+#include "utils.h"
 
-int main() {
-  std::string expr{"(+ (+ 1 2) 3)"};
-  std::string expr2{"(+ 3 4)"};
+int main(int argc, char *argv[]) {
+  auto [server_host, port_number, mode] = parse_arguments(argv, argc);
 
-  int result = Parser::parse_expr(expr);
-  int result2 = Parser::parse_expr(expr2);
-
-  log(result);
-  log(result2);
+  if (mode == "udp") {
+    UDPConnection connection(server_host, port_number);
+    connection.listen();
+  } else {
+    exit_with_error("Not implemented yet!", -1);
+  }
 }
