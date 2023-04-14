@@ -15,7 +15,7 @@ struct Token {
 
   explicit Token(char t);
 
-  bool operator==(Token &other) const;
+  bool operator==(const Token &other) const;
 
   int operator*(Token &other) const;
 };

@@ -6,6 +6,6 @@
 #include <iostream>
 
 void exit_with_error(const char *msg, int error_code) {
-  std::cout << msg << std::endl;
+  std::cerr << msg << std::endl;
   exit(error_code);
 }
