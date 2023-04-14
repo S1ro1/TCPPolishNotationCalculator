@@ -8,7 +8,7 @@ UDPConnection::UDPConnection(const char *host, long port_num) {
   struct sockaddr_in server_address = {};
 
   int server_sock = socket(AF_INET, SOCK_DGRAM, 0);
-  if (server_sock <= 0) exit_with_error("Socket error", 1);
+  if (server_sock <= 0) perror("ERR: ");
 
   int opt = 1;
   setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, (const void *) &opt, sizeof(int));
@@ -27,16 +27,23 @@ void UDPConnection::listen() const {
   struct sockaddr_in client_address = {};
   socklen_t client_len = 0;
   std::string result;
+  char status_byte{};
 
   while (1) {
     client_len = sizeof(client_address);
     check(recvfrom(this->server_socket, buf, 512, 0, (struct sockaddr *) &client_address, &client_len));
 
-    std::string message {buf + 2};
+    std::string message{buf + 2};
 
-    result = std::to_string(Parser::parse_expr(message));
+    try {
+      result = std::to_string(Parser::parse_expr(message));
+      status_byte = '\0';
+    } catch (ParseException &e) {
+      result = std::string(e.what());
+      status_byte = '\1';
+    }
 
-    std::string reply {'\1', '\0', (char)result.size()};
+    std::string reply{'\1', status_byte, (char) result.size()};
     reply += result;
 
     check(sendto(server_socket, reply.c_str(), reply.size(), 0, (struct sockaddr *) &client_address, client_len));

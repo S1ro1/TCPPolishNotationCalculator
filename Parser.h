@@ -20,6 +20,11 @@ enum State {
   T_RBRACE_CONTINUE,
 };
 
+class ParseException : public std::exception {
+  public:
+  char *what();
+};
+
 class Parser {
   public:
   Parser();

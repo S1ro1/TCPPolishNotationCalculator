@@ -5,6 +5,10 @@
 #include "Parser.h"
 #include <numeric>
 
+char *ParseException::what() {
+  return "Couldn't parse expression!";
+}
+
 int make_op(int accum, const Token &token, char op) {
   switch (op) {
     case '*':
@@ -26,15 +30,15 @@ Parser::Parser() = default;
 std::vector<Token>
 Parser::reduce_stack(std::vector<Token> expr_stack) {
   auto lbrace = std::find(expr_stack.rbegin(), expr_stack.rend(), Token('('));
-  if (lbrace == expr_stack.rbegin()) exit_with_error("Didn't find (", -1);
+  if (lbrace == expr_stack.rbegin()) throw ParseException();
 
   std::vector<Token> prev_vec(expr_stack.begin(), lbrace.base() - 1);
   std::vector<Token> to_reduce(lbrace.base(), expr_stack.end());
-  if (to_reduce.size() < 3) exit_with_error("Too short of a expression", 4);
+  if (to_reduce.size() < 3) throw ParseException();
 
   Token op = to_reduce.at(0);
 
-  if (!op.type.has_value()) exit_with_error("Invalid first token", 4);
+  if (!op.type.has_value()) throw ParseException();
 
   char op_val = op.type.value();
   int initial_val = to_reduce.at(1).val.value();
@@ -59,7 +63,7 @@ int Parser::parse_expr(std::string &expr) {
           expr_stack.emplace_back(*it);
           state = T_LBRACE;
         } else {
-          exit_with_error("Invalid token", 1);
+          throw ParseException();
         }
         continue;
       case T_LBRACE:
@@ -71,7 +75,7 @@ int Parser::parse_expr(std::string &expr) {
           expr_stack.emplace_back(*it);
           state = T_OP;
         } else {
-          exit_with_error("Invalid token", 1);
+          throw ParseException();
         }
         continue;
       case T_OP:
@@ -82,7 +86,7 @@ int Parser::parse_expr(std::string &expr) {
         } else if (isspace(*it)) {
           state = T_CONTINUE_EXPR;
         } else {
-          exit_with_error("Invalid token", 2);
+          throw ParseException();
         }
         continue;
       case T_NUM:
@@ -96,21 +100,20 @@ int Parser::parse_expr(std::string &expr) {
         } else if (*it == ')') {
           brace_count--;
           if (brace_count < 0) {
-            exit_with_error("Invalid braces", 11);
+            throw ParseException();
           }
           int num = std::stol(curr_num);
           expr_stack.emplace_back(num);
           curr_num.clear();
           expr_stack = reduce_stack(expr_stack);
 
-          auto it2 = it;
-          if (expr_stack.size() == 1 and brace_count == 0 and ++it2 == expr.end()) {
+          if (expr_stack.size() == 1 and brace_count == 0 and it + 1 == expr.end()) {
             return expr_stack.back().val.value();
           } else {
             state = T_RBRACE_CONTINUE;
           }
         } else {
-          exit_with_error("Invalid token", 3);
+          throw ParseException();
         }
         continue;
       case T_CONTINUE_EXPR:
@@ -122,18 +125,17 @@ int Parser::parse_expr(std::string &expr) {
           expr_stack.emplace_back(*it);
           state = T_LBRACE;
         } else {
-          exit_with_error("Invalid token", 4);
+          throw ParseException();
         }
         continue;
       case T_RBRACE_CONTINUE:
         if (*it == ')') {
           brace_count--;
           if (brace_count < 0) {
-            exit_with_error("Invalid braces", 11);
+            throw ParseException();
           }
           expr_stack = reduce_stack(expr_stack);
-          auto it2 = it;
-          if (expr_stack.size() == 1 and brace_count == 0 and ++it2 == expr.end()) {
+          if (expr_stack.size() == 1 and brace_count == 0 and it + 1 == expr.end()) {
             return expr_stack.back().val.value();
           } else {
             state = T_RBRACE_CONTINUE;
@@ -144,12 +146,11 @@ int Parser::parse_expr(std::string &expr) {
         } else if (isspace(*it)) {
           state = T_CONTINUE_EXPR;
         } else {
-          exit_with_error("Invalid token", 5);
+          throw ParseException();
         }
         continue;
     }
   }
 
-  exit_with_error("Couldn't parse lol", 42);
-  return 0;
+  throw ParseException();
 }

@@ -10,8 +10,8 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#include "utils.h"
 #include "Parser.h"
+#include "utils.h"
 
 class UDPConnection {
   private:
