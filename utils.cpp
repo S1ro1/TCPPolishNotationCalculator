@@ -43,6 +43,6 @@ std::tuple<const char *, long, std::string> parse_arguments(char *argv[], int ar
 
 void check(int func) {
   if (func < 0) {
-    exit_with_error("Func", 1);
+    perror("Error: ");
   }
 }

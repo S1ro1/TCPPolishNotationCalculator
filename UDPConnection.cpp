@@ -22,17 +22,24 @@ UDPConnection::UDPConnection(const char *host, long port_num) {
   this->server_socket = server_sock;
 };
 
-void UDPConnection::listen() {
-  char buf[512];
-  int bytesrx;
+void UDPConnection::listen() const {
+  char buf[512] = {};
   struct sockaddr_in client_address = {};
   socklen_t client_len = 0;
+  std::string result;
 
   while (1) {
     client_len = sizeof(client_address);
-    check((bytesrx = recvfrom(this->server_socket, buf, 512, 0, (struct sockaddr *) &client_address, &client_len)));
+    check(recvfrom(this->server_socket, buf, 512, 0, (struct sockaddr *) &client_address, &client_len));
 
-    log(buf);
+    std::string message {buf + 2};
+
+    result = std::to_string(Parser::parse_expr(message));
+
+    std::string reply {'\1', '\0', (char)result.size()};
+    reply += result;
+
+    check(sendto(server_socket, reply.c_str(), reply.size(), 0, (struct sockaddr *) &client_address, client_len));
 
     bzero(buf, 512);
   }

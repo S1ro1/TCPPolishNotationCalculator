@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 
 #include "utils.h"
+#include "Parser.h"
 
 class UDPConnection {
   private:
@@ -18,7 +19,7 @@ class UDPConnection {
 
   public:
   UDPConnection(const char *host_name, long port_num);
-  void listen();
+  void listen() const;
 };
 
 
