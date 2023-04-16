@@ -11,15 +11,22 @@ TCPConnection::TCPConnection(int socket_num) {
 }
 
 void TCPConnection::HandleConnection() {
-  char buffer[1024] = {0};
-  if (recv(socket_num, buffer, 1024, 0) <= 0) {
-    status = DISCONNECTED;
-    return;
-  }
-  buffer[1023] = '\0';
 
-  std::stringstream stream{buffer};
-  for (std::string message; std::getline(stream, message);message.clear()) {
+  std::stringstream stream;
+
+  std::string curr_message;
+  do {
+    char buffer[1024] = {0};
+    if (recv(socket_num, buffer, 1024, 0) <= 0) {
+      status = DISCONNECTED;
+      return;
+    }
+    buffer[1023] = '\0';
+    curr_message = buffer;
+    stream << buffer;
+  } while (curr_message.find('\n') == std::string::npos);
+
+  for (std::string message; std::getline(stream, message); message.clear()) {
     switch (status) {
       case INITIALIZED:
         if (message != "HELLO") {
@@ -40,7 +47,7 @@ void TCPConnection::HandleConnection() {
           try {
             message = check_tcp_format(message);
             int result = Parser::parse_expr(message);
-            std::string result_string = "RESULT" + std::to_string(result) + '\n';
+            std::string result_string = "RESULT " + std::to_string(result) + '\n';
 
             send(socket_num, result_string.c_str(), result_string.length(), 0);
           } catch (std::exception &e) {
@@ -52,5 +59,4 @@ void TCPConnection::HandleConnection() {
         break;
     }
   }
-
 }
