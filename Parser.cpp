@@ -14,6 +14,9 @@ int make_op(int accum, const Token &token, char op) {
     case '*':
       return accum * token.val.value();
     case '/':
+      if (token.val.value() == 0) {
+        throw ParseException();
+      }
       return accum / token.val.value();
     case '+':
       return accum + token.val.value();
@@ -42,9 +45,12 @@ Parser::reduce_stack(std::vector<Token> expr_stack) {
 
   char op_val = op.type.value();
   int initial_val = to_reduce.at(1).val.value();
-  int result = std::accumulate(to_reduce.begin() + 2, to_reduce.end(), initial_val, [op_val](int accum, const Token &token) { return make_op(accum, token, op_val); });
-
-  prev_vec.emplace_back(result);
+  try {
+    int result = std::accumulate(to_reduce.begin() + 2, to_reduce.end(), initial_val, [op_val](int accum, const Token &token) { return make_op(accum, token, op_val); });
+    prev_vec.emplace_back(result);
+  } catch (...) {
+    throw ParseException();
+  }
 
   return prev_vec;
 }
@@ -105,8 +111,11 @@ int Parser::parse_expr(std::string &expr) {
           int num = std::stol(curr_num);
           expr_stack.emplace_back(num);
           curr_num.clear();
-          expr_stack = reduce_stack(expr_stack);
-
+          try {
+            expr_stack = reduce_stack(expr_stack);
+          } catch (...) {
+            throw ParseException();
+          }
           if (expr_stack.size() == 1 and brace_count == 0 and it + 1 == expr.end()) {
             return expr_stack.back().val.value();
           } else {
@@ -134,7 +143,11 @@ int Parser::parse_expr(std::string &expr) {
           if (brace_count < 0) {
             throw ParseException();
           }
-          expr_stack = reduce_stack(expr_stack);
+          try {
+            expr_stack = reduce_stack(expr_stack);
+          } catch (...) {
+            throw ParseException();
+          }
           if (expr_stack.size() == 1 and brace_count == 0 and it + 1 == expr.end()) {
             return expr_stack.back().val.value();
           } else {
