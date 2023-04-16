@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     UDPConnection connection(server_host, port_number);
     connection.listen();
   } else {
-    TCPServer server(server_host, port_number);
-    server.WaitConnections();
+    TCPServer *server = new TCPServer(server_host, port_number);
+    server->WaitConnections();
   }
 }

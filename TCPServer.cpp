@@ -4,9 +4,14 @@
 
 #include "TCPServer.h"
 
+void sig_handler(int signo) {
+  run = 0;
+}
+
 TCPServer::TCPServer(const char *host_name, long port_num) {
   struct sockaddr_in server_address = {};
   int server_sock{};
+  signal(SIGINT, sig_handler);
 
   check((server_sock = socket(AF_INET, SOCK_STREAM, 0)));
 
@@ -27,7 +32,11 @@ void TCPServer::WaitConnections() {
   int addrlen{};
   struct sockaddr_in client_address {};
 
-  while (1) {
+  sigset_t zeromask;
+
+  sigemptyset(&zeromask);
+
+  while (run) {
     FD_ZERO(&readfs);
     FD_SET(this->server_socket, &readfs);
     int max_fd = this->server_socket;
@@ -38,7 +47,12 @@ void TCPServer::WaitConnections() {
       if (sd > max_fd) max_fd = sd;
     }
 
-    int activity = select(max_fd + 1, &readfs, nullptr, nullptr, nullptr);
+    int activity = pselect(max_fd + 1, &readfs, nullptr, nullptr, nullptr, &zeromask);
+
+    if (!run) {
+      delete this;
+      return;
+    }
 
     if ((activity < 0) && (errno != EINTR)) {
       std::cout << "Select error" << std::endl;
@@ -55,6 +69,8 @@ void TCPServer::WaitConnections() {
         }
       }
     }
+
+
     for (int i = 0; i < MAX_CONNECTIONS; i++) {
 
       if (this->connections[i].socket_num == 0) continue;
@@ -66,4 +82,13 @@ void TCPServer::WaitConnections() {
       }
     }
   }
+}
+TCPServer::~TCPServer() {
+  for (int i = 0; i < MAX_CONNECTIONS; i++) {
+    if (this->connections[i].socket_num != 0) {
+      send(this->connections[i].socket_num, "BYE\n", 4, 0);
+      close(this->connections[i].socket_num);
+    }
+  }
+  close(this->server_socket);
 }

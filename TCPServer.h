@@ -14,10 +14,13 @@
 #include <string>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <csignal>
 
 #include "Parser.h"
 #include "TCPConnection.h"
 #include "utils.h"
+
+static int run = 1;
 
 class TCPServer {
   private:
@@ -26,6 +29,7 @@ class TCPServer {
 
   public:
   TCPServer(const char *host_name, long port_num);
+  ~TCPServer();
   void WaitConnections();
 };
 
