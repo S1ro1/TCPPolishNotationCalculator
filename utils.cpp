@@ -4,6 +4,10 @@
 
 #include "utils.h"
 
+char *TcpFormatException::what() {
+  return "Invalid TCP message format";
+}
+
 void exit_with_error(const char *msg, int error_code) {
   std::cerr << msg << std::endl;
   exit(error_code);
@@ -41,8 +45,18 @@ std::tuple<const char *, long, std::string> parse_arguments(char *argv[], int ar
   return std::make_tuple(server_hostname, port_number, mode);
 }
 
-void check(int func) {
+int check(int func) {
   if (func < 0) {
     perror("Error: ");
   }
+  return func;
+}
+
+std::string check_tcp_format(std::string msg) {
+  if (!msg.starts_with("SOLVE ")) {
+    throw TcpFormatException();
+  }
+
+  msg.erase(0, 6);
+  return msg;
 }
