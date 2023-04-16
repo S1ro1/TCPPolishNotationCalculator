@@ -33,8 +33,13 @@ void UDPConnection::listen() const {
     client_len = sizeof(client_address);
     check(recvfrom(this->server_socket, buf, 512, 0, (struct sockaddr *) &client_address, &client_len));
 
+    if (buf[0] == '\1') {
+      check(sendto(server_socket, "\1\1Error", 7, 0, (struct sockaddr *) &client_address, client_len));
+      continue;
+    }
     std::string message{buf + 2};
-
+    int length = (uint8_t)buf[1];
+    message = message.substr(0, length);
     try {
       result = std::to_string(Parser::parse_expr(message));
       status_byte = '\0';
