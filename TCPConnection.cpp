@@ -18,38 +18,39 @@ void TCPConnection::HandleConnection() {
   }
   buffer[1023] = '\0';
 
-  std::string message{buffer};
-  message.pop_back();
-
-  switch (status) {
-    case INITIALIZED:
-      if (message != "HELLO") {
-        send(socket_num, "BYE\n", 4, 0);
-        status = DISCONNECTED;
-        break;
-      } else {
-        send(socket_num, "HELLO\n", 6, 0);
-        status = CONNECTED;
-        break;
-      }
-    case CONNECTED:
-      if (message == "BYE") {
-        send(socket_num, "BYE\n", 4, 0);
-        status = DISCONNECTED;
-        break;
-      } else {
-        try {
-          message = check_tcp_format(message);
-          int result = Parser::parse_expr(message);
-          std::string result_string = std::to_string(result) + '\n';
-
-          send(socket_num, result_string.c_str(), result_string.length(), 0);
-        } catch (std::exception &e) {
+  std::stringstream stream{buffer};
+  for (std::string message; std::getline(stream, message);message.clear()) {
+    switch (status) {
+      case INITIALIZED:
+        if (message != "HELLO") {
           send(socket_num, "BYE\n", 4, 0);
+          status = DISCONNECTED;
+          break;
+        } else {
+          send(socket_num, "HELLO\n", 6, 0);
+          status = CONNECTED;
           break;
         }
-      }
-    default:
-      break;
+      case CONNECTED:
+        if (message == "BYE") {
+          send(socket_num, "BYE\n", 4, 0);
+          status = DISCONNECTED;
+          break;
+        } else {
+          try {
+            message = check_tcp_format(message);
+            int result = Parser::parse_expr(message);
+            std::string result_string = std::to_string(result) + '\n';
+
+            send(socket_num, result_string.c_str(), result_string.length(), 0);
+          } catch (std::exception &e) {
+            send(socket_num, "BYE\n", 4, 0);
+            break;
+          }
+        }
+      default:
+        break;
+    }
   }
+
 }
