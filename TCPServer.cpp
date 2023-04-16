@@ -14,6 +14,8 @@ TCPServer::TCPServer(const char *host_name, long port_num) {
   signal(SIGINT, sig_handler);
 
   check((server_sock = socket(AF_INET, SOCK_STREAM, 0)));
+  int optval = 1;
+  setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&optval , sizeof(int));
 
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons((unsigned short) port_num);
@@ -86,9 +88,28 @@ void TCPServer::WaitConnections() {
 TCPServer::~TCPServer() {
   for (int i = 0; i < MAX_CONNECTIONS; i++) {
     if (this->connections[i].socket_num != 0) {
+      log(i);
       send(this->connections[i].socket_num, "BYE\n", 4, 0);
       close(this->connections[i].socket_num);
     }
   }
+  log("destroying server");
+  log(this->server_socket);
   close(this->server_socket);
+  log(this->server_socket);
+
+  int error = 0;
+  socklen_t len = sizeof (error);
+  int retval = getsockopt (this->server_socket, SOL_SOCKET, SO_ERROR, &error, &len);
+
+  if (retval != 0) {
+    /* there was a problem getting the error code */
+    fprintf(stderr, "error getting socket error code: %s\n", strerror(retval));
+    return;
+  }
+
+  if (error != 0) {
+    /* socket has a non zero error status */
+    fprintf(stderr, "socket error: %s\n", strerror(error));
+  }
 }
