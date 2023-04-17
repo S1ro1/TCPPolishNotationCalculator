@@ -6,7 +6,8 @@
 #include <numeric>
 
 char *ParseException::what() {
-  return "Couldn't parse expression!";
+  char const* msg = "Couldn't parse expression!";
+  return (char *)msg;
 }
 
 // help function to be called in accumulate to reduce the vector

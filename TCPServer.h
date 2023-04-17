@@ -20,7 +20,6 @@
 #include "TCPConnection.h"
 #include "utils.h"
 
-static int run = 1;
 
 class TCPServer {
   private:

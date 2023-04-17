@@ -5,7 +5,8 @@
 #include "utils.h"
 
 char *TcpFormatException::what() {
-  return "Invalid TCP message format";
+  char const* msg = "Invalid TCP message format";
+  return (char *)msg;
 }
 
 void exit_with_error(const char *msg, int error_code) {

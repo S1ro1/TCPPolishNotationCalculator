@@ -4,7 +4,10 @@
 
 #include "TCPServer.h"
 
+static int run = 1;
+
 void sig_handler(int signo) {
+  (void) signo;
   run = 0;
 }
 

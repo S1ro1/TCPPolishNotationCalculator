@@ -3,3 +3,6 @@ cmake_install.cmake
 .idea
 test
 .pytest_cache
+*.d
+*.o
+ipkcpd
