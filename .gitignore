@@ -5,4 +5,5 @@ test
 .pytest_cache
 *.d
 *.o
+*.zip
 ipkcpd

@@ -5,7 +5,7 @@
 #ifndef IPK_PARSER_TCPSERVER_H
 #define IPK_PARSER_TCPSERVER_H
 
-#define MAX_CONNECTIONS 32
+#define MAX_CONNECTIONS 96
 
 #include <arpa/inet.h>
 #include <array>
