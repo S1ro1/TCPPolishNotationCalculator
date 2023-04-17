@@ -74,9 +74,6 @@ Beh programu začína v súbore main.cpp. V tejto funkcii sa spracujú argumenty
 - V prípade, že správa nie je v správnom formáte, odošle sa BYE\n a stav sa zmení na DISCONNECTED, BYE\n sa odošle aj v prípade, že doručená správa obsahuje BYE\n
 - V prípade správneho výrazu sa vypočíta výsledok a odošle sa v tvare "RESULT {výsledok}\n"
 
-### Známe limitácie
-- Podporovanou platformou je iba Linux
-- V prípade, že sa v TCP príjme správa napr. "HELLO\nSOLVE (+1" , tak druhá časť správy, teda SOLVE ... sa už nevyhodnotí pretože neobsahuje znak nového riadku
 
 ### Testovanie
 
