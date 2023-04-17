@@ -53,6 +53,7 @@ void TCPConnection::HandleConnection() {
             send(socket_num, result_string.c_str(), result_string.length(), 0);
           } catch (std::exception &e) {
             send(socket_num, "BYE\n", 4, 0);
+            status = DISCONNECTED;
             break;
           }
         }
