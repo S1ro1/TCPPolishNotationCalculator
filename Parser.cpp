@@ -23,9 +23,8 @@ int make_op(int accum, const Token &token, char op) {
     case '-':
       return accum - token.val.value();
     default:
-      exit_with_error("Invalid operator", 5);
+      throw ParseException();
   }
-  return -1;
 }
 
 Parser::Parser() = default;

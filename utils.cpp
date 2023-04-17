@@ -55,6 +55,7 @@ int check(int func) {
 std::string check_tcp_format(std::string msg) {
   if (!msg.starts_with("SOLVE ")) {
     throw TcpFormatException();
+    return msg;
   }
 
   msg.erase(0, 6);

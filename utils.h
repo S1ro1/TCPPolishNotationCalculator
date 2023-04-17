@@ -13,7 +13,7 @@
 
 #define log(x) std::cout << x << std::endl;
 
-class TcpFormatException : std::exception {
+class TcpFormatException : public std::exception {
   public:
   char *what();
 };

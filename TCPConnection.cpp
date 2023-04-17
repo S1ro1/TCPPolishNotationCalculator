@@ -47,6 +47,7 @@ void TCPConnection::HandleConnection() {
           try {
             message = check_tcp_format(message);
             int result = Parser::parse_expr(message);
+            if (result < 0) throw ParseException();
             std::string result_string = "RESULT " + std::to_string(result) + '\n';
 
             send(socket_num, result_string.c_str(), result_string.length(), 0);

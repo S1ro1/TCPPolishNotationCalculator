@@ -41,7 +41,10 @@ void UDPConnection::listen() const {
     int length = (uint8_t)buf[1];
     message = message.substr(0, length);
     try {
-      result = std::to_string(Parser::parse_expr(message));
+      int val = Parser::parse_expr(message);
+      if (val < 0) throw ParseException();
+      result = std::to_string(val);
+
       status_byte = '\0';
     } catch (ParseException &e) {
       result = std::string(e.what());
