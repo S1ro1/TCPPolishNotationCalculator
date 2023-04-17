@@ -9,6 +9,7 @@ char *ParseException::what() {
   return "Couldn't parse expression!";
 }
 
+// help function to be called in accumulate to reduce the vector
 int make_op(int accum, const Token &token, char op) {
   switch (op) {
     case '*':
@@ -29,21 +30,26 @@ int make_op(int accum, const Token &token, char op) {
 
 Parser::Parser() = default;
 
+
 std::vector<Token>
 Parser::reduce_stack(std::vector<Token> expr_stack) {
+  // find the last left brace
   auto lbrace = std::find(expr_stack.rbegin(), expr_stack.rend(), Token('('));
   if (lbrace == expr_stack.rbegin()) throw ParseException();
 
+  // split vector into 2 on the left brace
   std::vector<Token> prev_vec(expr_stack.begin(), lbrace.base() - 1);
   std::vector<Token> to_reduce(lbrace.base(), expr_stack.end());
   if (to_reduce.size() < 3) throw ParseException();
 
+  // get operator and first value
   Token op = to_reduce.at(0);
 
   if (!op.type.has_value()) throw ParseException();
 
   char op_val = op.type.value();
   int initial_val = to_reduce.at(1).val.value();
+  // reduce the rest of the vector and push into prev_vec
   try {
     int result = std::accumulate(to_reduce.begin() + 2, to_reduce.end(), initial_val, [op_val](int accum, const Token &token) { return make_op(accum, token, op_val); });
     prev_vec.emplace_back(result);
@@ -58,8 +64,10 @@ int Parser::parse_expr(std::string &expr) {
   std::vector<Token> expr_stack;
   std::string curr_num;
   State state = T_START;
+
   int brace_count = 0;
 
+  // state automat for parsing the expression
   for (auto it = expr.begin(); it != expr.end(); ++it) {
     switch (state) {
       case T_START:

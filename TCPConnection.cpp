@@ -15,6 +15,7 @@ void TCPConnection::HandleConnection() {
   std::stringstream stream;
 
   std::string curr_message;
+  // read from recv until we get a newline
   do {
     char buffer[1024] = {0};
     if (recv(socket_num, buffer, 1024, 0) <= 0) {
@@ -26,6 +27,7 @@ void TCPConnection::HandleConnection() {
     stream << buffer;
   } while (curr_message.find('\n') == std::string::npos);
 
+  // iterate over all lines in stream
   for (std::string message; std::getline(stream, message); message.clear()) {
     switch (status) {
       case INITIALIZED:

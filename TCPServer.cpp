@@ -11,12 +11,15 @@ void sig_handler(int signo) {
 TCPServer::TCPServer(const char *host_name, long port_num) {
   struct sockaddr_in server_address = {};
   int server_sock{};
+
+  // register signal handler
   signal(SIGINT, sig_handler);
 
   check((server_sock = socket(AF_INET, SOCK_STREAM, 0)));
   int optval = 1;
   setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, (const void *)&optval , sizeof(int));
 
+  // init server_address
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons((unsigned short) port_num);
   if ((server_address.sin_addr.s_addr = inet_addr(host_name)) == INADDR_ANY) exit_with_error("Invalid host", 1);
@@ -25,7 +28,9 @@ TCPServer::TCPServer(const char *host_name, long port_num) {
 
   check(listen(server_sock, MAX_CONNECTIONS));
 
+  // set server socket
   this->server_socket = server_sock;
+  // fill connections with empty connections
   std::fill_n(this->connections.begin(), MAX_CONNECTIONS, TCPConnection());
 }
 
@@ -38,6 +43,7 @@ void TCPServer::WaitConnections() {
 
   sigemptyset(&zeromask);
 
+  // run loop
   while (run) {
     FD_ZERO(&readfs);
     FD_SET(this->server_socket, &readfs);
@@ -49,8 +55,10 @@ void TCPServer::WaitConnections() {
       if (sd > max_fd) max_fd = sd;
     }
 
+    // select
     int activity = pselect(max_fd + 1, &readfs, nullptr, nullptr, nullptr, &zeromask);
 
+    // call cleanup in case of ctrl+c
     if (!run) {
       delete this;
       return;
@@ -60,6 +68,7 @@ void TCPServer::WaitConnections() {
       std::cout << "Select error" << std::endl;
     }
 
+    // activity on main socket
     if (FD_ISSET(this->server_socket, &readfs)) {
       int client_socket = accept(this->server_socket, (struct sockaddr *) &client_address, (socklen_t *) (&addrlen));
       check(client_socket);
@@ -73,11 +82,13 @@ void TCPServer::WaitConnections() {
     }
 
 
+    // handle other connections
     for (int i = 0; i < MAX_CONNECTIONS; i++) {
 
       if (this->connections[i].socket_num == 0) continue;
       if (FD_ISSET(this->connections[i].socket_num, &readfs)) this->connections[i].HandleConnection();
 
+      // replace disconnected connections with empty connections
       if (this->connections[i].status == DISCONNECTED) {
         close(this->connections[i].socket_num);
         this->connections[i] = TCPConnection();
